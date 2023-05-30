@@ -1,0 +1,61 @@
+# For converting dicom to MetaImage for use with AnnotationWeb
+
+import numpy as np
+# import PIL, PIL.Image
+from pydicom import dcmread
+from pathlib import Path
+from common.metaimage import MetaImage
+from dtd import autopatch
+
+def dcm_to_mhd(path_to_data, subject_id, recording_id=1):
+    count_frames = 0
+    for f in path_to_data.glob('**/[!.]*'):
+        print(f)
+        dc = dcmread(f)
+        data = dc.pixel_array.astype(np.uint8) # convert to uint8 for compatibility with MetaImage class
+        dims = dc.PixelSpacing
+        # bigger_data = data.repeat(2, axis=0).repeat(2, axis=1)
+        im = MetaImage(data=data)
+        im.set_spacing(dims)
+        im.set_attribute("frames", str(count_frames))
+        # breakpoint()
+        out_path = Path(f"data_test/MAD_{subject_id}/LA_fch_{recording_id:d}/")
+        out_path.mkdir(parents=True, exist_ok=True)
+        im.write(filename=out_path.joinpath(f"frame_{count_frames}.mhd"))
+        count_frames += 1
+        # breakpoint()
+
+
+def main():
+    data_paths = Path("/Users/nick/ProCardio/Projects/mad/data_raw/MAD_OUS_sorted/")
+    for subject_path in sorted(data_paths.iterdir()):
+        subject = subject_path.stem
+        path_4ch = subject_path.joinpath("cine/4ch/")
+
+        if not path_4ch.is_dir():
+            print(f"No 4ch data folder for subject {subject}.")
+            continue
+
+        if any(f.is_dir() for f in path_4ch.iterdir()):
+            # iterate through folders
+            folder_count = 1
+            for series_path in sorted(path_4ch.iterdir()):
+                dcm_to_mhd(series_path, subject, recording_id=folder_count)
+                folder_count +=1
+        else:
+            dcm_to_mhd(path_4ch, subject)
+
+if __name__=='__main__':
+    main()
+
+
+# ds = dcmread(path)
+# data = ds.pixel_array
+# dims = ds.PixelSpacing
+# print(f'The image has {data.shape[0]} x {data.shape[1]} voxels')
+# bigger_data = data.repeat(2, axis=0).repeat(2, axis=1)
+# im = MetaImage(data=data)
+# im.set_spacing(dims)
+# im.set_attribute("frames", num_frames)
+# im.write(filename="data/test.mhd")
+# breakpoint()
