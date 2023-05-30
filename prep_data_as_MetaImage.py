@@ -6,24 +6,24 @@ from pydicom import dcmread
 from pathlib import Path
 from common.metaimage import MetaImage
 from dtd import autopatch
+import cv2
 
 def dcm_to_mhd(path_to_data, subject_id, recording_id=1):
     count_frames = 0
     for f in path_to_data.glob('**/[!.]*'):
         print(f)
         dc = dcmread(f)
-        data = dc.pixel_array.astype(np.uint8) # convert to uint8 for compatibility with MetaImage class
+        data = cv2.normalize(dc.pixel_array, None,
+                             0, 255, cv2.NORM_MINMAX).astype(np.uint8)
         dims = dc.PixelSpacing
         # bigger_data = data.repeat(2, axis=0).repeat(2, axis=1)
         im = MetaImage(data=data)
         im.set_spacing(dims)
         im.set_attribute("frames", str(count_frames))
-        # breakpoint()
         out_path = Path(f"data_test/MAD_{subject_id}/LA_fch_{recording_id:d}/")
         out_path.mkdir(parents=True, exist_ok=True)
         im.write(filename=out_path.joinpath(f"frame_{count_frames}.mhd"))
         count_frames += 1
-        # breakpoint()
 
 
 def main():

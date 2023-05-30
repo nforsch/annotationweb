@@ -56,7 +56,13 @@ class MetaImage:
             self.dim_size = (int(dims[0]), int(dims[1]), int(dims[2]))
 
         self.ndims = int(self.attributes['NDims'])
-
+        # if self.attributes['ElementType'] == 'MET_USHORT':
+        #     np_type = np.uint16
+        # elif self.attributes['ElementType'] == 'MET_UCHAR':
+        #     np_type = np.uint8
+        # else:
+        #     pass
+        
         compressed_data = 'CompressedData' in self.attributes and self.attributes['CompressedData'] == 'True'
 
         if compressed_data:
