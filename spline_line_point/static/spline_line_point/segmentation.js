@@ -320,9 +320,9 @@ function redraw(){
     if(!(g_currentFrameNr in g_controlPoints))
         return;
 
-    var controlPointSize = 6;
+    var controlPointSize = 4;
     var landmarkPointSize = controlPointSize*1.5
-    g_context.lineWidth = 2;
+    g_context.lineWidth = 1;
 
     // Draw controlPoint
     for(var j in g_controlPoints[g_currentFrameNr]) {

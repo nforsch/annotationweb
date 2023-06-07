@@ -8,3 +8,7 @@
 *.pyc
 __pycache__/
 /static
+
+# My stuff
+.DS_Store
+/data*
