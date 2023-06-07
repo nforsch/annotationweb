@@ -8,22 +8,26 @@ from common.metaimage import MetaImage
 from dtd import autopatch
 import cv2
 
-def dcm_to_mhd(path_to_data, subject_id, recording_id=1):
-    count_frames = 0
+def dcm_to_mhd(path_to_data, subject_id, recording_id=1, upscale=True, f_upscale=2):
     for f in path_to_data.glob('**/[!.]*'):
         print(f)
+        frame = f.stem.split('_')[0]
         dc = dcmread(f)
-        data = cv2.normalize(dc.pixel_array, None,
-                             0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-        dims = dc.PixelSpacing
-        # bigger_data = data.repeat(2, axis=0).repeat(2, axis=1)
+        # data = cv2.normalize(dc.pixel_array, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        data = cv2.convertScaleAbs(dc.pixel_array)
+        # data = dc.pixel_array.astype(np.uint8)
+        if upscale:
+            data = data.repeat(2, axis=0).repeat(2, axis=1)
+            dims = [np.divide(1, f_upscale) * ps for ps in dc.PixelSpacing]
+        else:
+            dims = dc.PixelSpacing
+
         im = MetaImage(data=data)
         im.set_spacing(dims)
-        im.set_attribute("frames", str(count_frames))
-        out_path = Path(f"data_test/MAD_{subject_id}/LA_fch_{recording_id:d}/")
+        im.set_attribute("frames", frame)
+        out_path = Path(f"data_test_us_2/MAD_{subject_id}/LA_fch_{recording_id:d}/")
         out_path.mkdir(parents=True, exist_ok=True)
-        im.write(filename=out_path.joinpath(f"frame_{count_frames}.mhd"))
-        count_frames += 1
+        im.write(filename=out_path.joinpath(f"frame_{frame}.mhd"))
 
 
 def main():
