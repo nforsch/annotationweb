@@ -320,7 +320,7 @@ function redraw(){
     if(!(g_currentFrameNr in g_controlPoints))
         return;
 
-    var controlPointSize = 4;
+    var controlPointSize = 3;
     var landmarkPointSize = controlPointSize*1.5
     g_context.lineWidth = 1;
 
